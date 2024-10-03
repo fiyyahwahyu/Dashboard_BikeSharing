@@ -1,108 +1,191 @@
-import streamlit as st
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pandas as pd
 from sklearn.preprocessing import StandardScaler
+import streamlit as st
 
-# Set up the Streamlit app
-st.set_page_config(page_title="Sharing Sepeda", layout="wide")
-st.title("📊 Sharing Sepeda: Analisis Data")
+# Title of the app
+st.title('Bike Rental Analysis')
 
-# Load data
-@st.cache_data
-def load_data():
-    df_hour = pd.read_csv("https://drive.google.com/uc?id=1L9OyIKdgGVPpThq55Z-54BFpOfurkNVu&export=download")
-    df_day = pd.read_csv("https://drive.google.com/uc?id=1LloLN-1f6CXvF4Qpp7Wgy4a6gO9KZtgu&export=download")
-    return df_hour, df_day
+# Data Gathering
+df_hour = pd.read_csv("https://drive.google.com/uc?id=1L9OyIKdgGVPpThq55Z-54BFpOfurkNVu&export=download")
+df_day = pd.read_csv("https://drive.google.com/uc?id=1LloLN-1f6CXvF4Qpp7Wgy4a6gO9KZtgu&export=download")
 
-df_hour, df_day = load_data()
+# Display the first few rows of the datasets
+st.subheader("Hourly Data Sample")
+st.dataframe(df_hour.head())
+st.subheader("Daily Data Sample")
+st.dataframe(df_day.head())
 
-# Sidebar for navigation
-st.sidebar.title("Navigasi")
-option = st.sidebar.radio("Pilih Halaman:", ("Analisis Jam", "Analisis Hari"))
+# Data Assessment
+st.subheader("Missing Values in Hourly Dataset")
+st.text(df_hour.isna().sum())
+st.subheader("Unique Values in Hourly Dataset")
+st.text(df_hour.nunique())
+st.subheader("Duplicate Entries in Hourly Dataset")
+st.text(df_hour.duplicated().sum())
 
-# Data Analysis Section for Hourly Data
-if option == "Analisis Jam":
-    st.subheader("Analisis Data Jam")
-    
-    if st.checkbox("Tampilkan Data Jam"):
-        st.write(df_hour.head())
+st.subheader("Missing Values in Daily Dataset")
+st.text(df_day.isna().sum())
+st.subheader("Unique Values in Daily Dataset")
+st.text(df_day.nunique())
+st.subheader("Duplicate Entries in Daily Dataset")
+st.text(df_day.duplicated().sum())
 
-    st.write("Jumlah missing values di df_hour:", df_hour.isna().sum().sum())
-    st.write("Jumlah duplikat di df_hour:", df_hour.duplicated().sum())
+# Data Cleaning Summary
+st.subheader("Cleaning Summary")
+st.write("""
+Both datasets are free of duplicates and missing values.
+""")
 
-    # Replace season numbers with names
-    season_mapping = {1: 'Spring', 2: 'Summer', 3: 'Fall', 4: 'Winter'}
-    df_hour['season'] = df_hour['season'].replace(season_mapping)
+# EDA: Hourly Data
+st.subheader("Explore Hourly Data")
 
-    # Group by season
-    hour_season_counts = df_hour.groupby(by="season")['cnt'].sum().sort_index()
+# Change season values
+season_mapping = {
+    1: 'Spring',
+    2: 'Summer',
+    3: 'Fall',
+    4: 'Winter'
+}
+df_hour['season'] = df_hour['season'].replace(season_mapping)
 
-    # Bar plot for season counts
-    plt.figure(figsize=(10, 6))
-    plt.bar(hour_season_counts.index, hour_season_counts.values, color='skyblue')
-    plt.title('Total Sharing Sepeda Berdasarkan Musim (Season)', fontsize=18)
-    plt.xlabel('Musim', fontsize=14)
-    plt.ylabel('Total Sharing', fontsize=14)
-    plt.xticks(hour_season_counts.index)
-    st.pyplot(plt)
+# Total daily tenant based on season
+hour_season_counts = df_hour.groupby(by="season")['cnt'].sum().sort_index()
+plt.figure(figsize=(10, 6))
+plt.bar(hour_season_counts.index, hour_season_counts.values, color='skyblue')
+plt.title('Total Daily Tenant Based on Season')
+plt.xlabel('Season')
+plt.ylabel('Total Tenant')
+plt.xticks(hour_season_counts.index)
+st.pyplot(plt)
 
-    # Monthly analysis
-    hour_monthly_cnt = df_hour.groupby(by="mnth")[['casual', 'registered', 'cnt']].sum().sort_index()
+# Monthly Counts
+hour_monthly_cnt = df_hour.groupby(by="mnth")[['casual', 'registered', 'cnt']].sum().sort_index()
+plt.figure(figsize=(10, 6))
+months = hour_monthly_cnt.index
+bar_width = 0.35
+index = np.arange(len(months))
+plt.bar(index - bar_width/2, hour_monthly_cnt['cnt'], bar_width, label='Total', color='skyblue')
+plt.title('Total Hourly Tenant Based on Month')
+plt.xlabel('Month')
+plt.ylabel('Tenant (cnt)')
+plt.xticks(index, months)
+plt.legend()
+st.pyplot(plt)
 
-    # Bar plot for monthly counts
-    plt.figure(figsize=(10, 6))
-    months = hour_monthly_cnt.index
-    bar_width = 0.35
-    index = np.arange(len(months))
-    plt.bar(index - bar_width/2, hour_monthly_cnt['cnt'], bar_width, label='Total', color='skyblue')
-    plt.title('Total Sharing Sepeda Berdasarkan Bulan', fontsize=18)
-    plt.xlabel('Bulan', fontsize=14)
-    plt.ylabel('Total Sharing', fontsize=14)
-    plt.xticks(index, months)
-    plt.legend()
-    st.pyplot(plt)
+# EDA: Daily Data
+st.subheader("Explore Daily Data")
 
-# Data Analysis Section for Daily Data
-if option == "Analisis Hari":
-    st.subheader("Analisis Data Hari")
+# Change season values for daily data
+df_day['season'] = df_day['season'].replace(season_mapping)
 
-    if st.checkbox("Tampilkan Data Hari"):
-        st.write(df_day.head())
+# Total daily tenant based on season
+day_season_counts = df_day.groupby(by="season")['cnt'].sum().sort_index()
+plt.figure(figsize=(10, 6))
+plt.bar(day_season_counts.index, day_season_counts.values, color='skyblue')
+plt.title('Total Daily Tenant Based on Season')
+plt.xlabel('Season')
+plt.ylabel('Total Tenant')
+plt.xticks(day_season_counts.index)
+st.pyplot(plt)
 
-    df_day['season'] = df_day['season'].replace(season_mapping)
-    day_season_counts = df_day.groupby(by="season")['cnt'].sum().sort_index()
+# Monthly Counts for daily data
+day_monthly_cnt = df_day.groupby(by="mnth")[['casual', 'registered', 'cnt']].sum().sort_index()
+plt.figure(figsize=(10, 6))
+months = day_monthly_cnt.index
+bar_width = 0.35
+index = np.arange(len(months))
+plt.bar(index - bar_width/2, day_monthly_cnt['cnt'], bar_width, label='Total', color='skyblue')
+plt.title('Total Daily Tenant Based on Month')
+plt.xlabel('Month')
+plt.ylabel('Tenant (cnt)')
+plt.xticks(index, months)
+plt.legend()
+st.pyplot(plt)
 
-    # Bar plot for daily season counts
-    plt.figure(figsize=(10, 6))
-    plt.bar(day_season_counts.index, day_season_counts.values, color='skyblue')
-    plt.title('Total Sharing Sepeda Berdasarkan Musim (Season)', fontsize=18)
-    plt.xlabel('Musim', fontsize=14)
-    plt.ylabel('Total Sharing', fontsize=14)
-    plt.xticks(day_season_counts.index)
-    st.pyplot(plt)
+# Merging datasets
+df_hour_agg = df_hour.groupby('dteday').agg({
+    'casual': 'sum',
+    'registered': 'sum',
+    'cnt': 'sum'
+}).reset_index()
 
-    # Monthly analysis for daily data
-    day_monthly_cnt = df_day.groupby(by="mnth")[['casual', 'registered', 'cnt']].sum().sort_index()
+df_combined = pd.merge(df_day, df_hour_agg, on='dteday', suffixes=('_day', '_hour'))
 
-    # Bar plot for monthly counts
-    plt.figure(figsize=(10, 6))
-    plt.bar(index - bar_width/2, day_monthly_cnt['cnt'], bar_width, label='Total', color='skyblue')
-    plt.title('Total Sharing Sepeda Berdasarkan Bulan', fontsize=18)
-    plt.xlabel('Bulan', fontsize=14)
-    plt.ylabel('Total Sharing', fontsize=14)
-    plt.xticks(index, months)
-    plt.legend()
-    st.pyplot(plt)
+# Seasonal and monthly trend
+total_by_season_mnth = df_combined.groupby(['season', 'mnth']).agg({
+    'cnt_day': 'sum',
+    'cnt_hour': 'sum'
+}).reset_index()
 
-# Clustering analysis example
-st.subheader("Clustering Sharing")
-features = df_hour[['casual', 'registered']]
+plt.figure(figsize=(12, 8))
+sns.barplot(data=total_by_season_mnth, x='mnth', y='cnt_day', hue='season')
+plt.title('Total Penyewaan Sepeda Berdasarkan Musim (Season) dan Bulan')
+plt.xlabel('Month')
+plt.ylabel('Total Penyewaan')
+plt.xticks(rotation=45)
+st.pyplot(plt)
+
+plt.figure(figsize=(12, 8))
+sns.barplot(data=total_by_season_mnth, x='mnth', y='cnt_hour', hue='season')
+plt.title('Total Penyewaan Sepeda Berdasarkan Musim (Season) dan Bulan')
+plt.xlabel('Month')
+plt.ylabel('Total Penyewaan')
+plt.xticks(rotation=45)
+st.pyplot(plt)
+
+# Analysis on Holidays
+df_combined['day_info'] = df_combined.apply(
+    lambda row: f"{'Holiday' if row['holiday'] == 1 else 'Non-Holiday'}",
+    axis=1
+)
+
+holiday_grouped = df_combined.groupby(['holiday']).agg({
+    'cnt_day': 'sum',
+    'cnt_hour': 'sum',
+}).reset_index()
+
+holiday_grouped['holiday_label'] = holiday_grouped['holiday'].replace({0: 'Non-Holiday', 1: 'Holiday'})
+
+# Visualize holiday analysis
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+sns.barplot(x='holiday_label', y='cnt_day', data=holiday_grouped, palette='viridis', legend=False)
+plt.title('Count of Days')
+plt.xlabel('Holiday Type')
+plt.ylabel('Count of Days')
+
+plt.subplot(1, 2, 2)
+sns.barplot(x='holiday_label', y='cnt_hour', data=holiday_grouped, palette='viridis', legend=False)
+plt.title('Count of Hours')
+plt.xlabel('Holiday Type')
+plt.ylabel('Count of Hours')
+
+plt.tight_layout()
+st.pyplot(plt)
+
+# New Graph: Total Rentals Based on Season and Year
+total_by_season_year = df_combined.groupby(['yr', 'season']).agg({
+    'cnt_day': 'sum',
+    'cnt_hour': 'sum'
+}).reset_index()
+total_by_season_year['yr'] = total_by_season_year['yr'].replace({0: 2011, 1: 2012})
+
+plt.figure(figsize=(10, 6))
+sns.barplot(data=total_by_season_year, x='season', y='cnt_day', hue='yr')
+plt.title('Total Penyewaan Sepeda Berdasarkan Musim Tahun 2011 dan 2012')
+plt.xlabel('Season')
+plt.ylabel('Total Penyewaan (Hari)')
+plt.legend(title='Year', loc='upper right', labels=['2011', '2012'])
+st.pyplot(plt)
+
+# Clustering Analysis
+features = df_hour[['casual', 'registered']].values
 scaler = StandardScaler()
 features_scaled = scaler.fit_transform(features)
 
-# Manually set centroids for illustration purposes
 centroid_1 = features_scaled[0]
 centroid_2 = features_scaled[1]
 
@@ -113,19 +196,37 @@ clusters = []
 for point in features_scaled:
     dist_to_centroid_1 = euclidean_distance(point, centroid_1)
     dist_to_centroid_2 = euclidean_distance(point, centroid_2)
-    clusters.append(0 if dist_to_centroid_1 < dist_to_centroid_2 else 1)
+
+    if dist_to_centroid_1 < dist_to_centroid_2:
+        clusters.append(0)  # Cluster 1
+    else:
+        clusters.append(1)  # Cluster 2
 
 df_hour['cluster'] = clusters
 
-# Scatter plot for clustering
 plt.figure(figsize=(10, 6))
-sns.scatterplot(data=df_hour, x='casual', y='registered', hue='cluster', palette='viridis', alpha=0.7)
-plt.title('Clustering Sharing Sepeda', fontsize=18)
-plt.xlabel('Jumlah Casual', fontsize=14)
-plt.ylabel('Jumlah Registered', fontsize=14)
+sns.scatterplot(data=df_hour, x='casual', y='registered', hue='cluster', palette='viridis')
+plt.title('Clustering Hasil Penyewaan Sepeda')
+plt.xlabel('Jumlah Casual')
+plt.ylabel('Jumlah Registered')
 plt.legend(title='Cluster')
 st.pyplot(plt)
 
-# Footer
-st.markdown("---")
-st.markdown("Data diperoleh dari dataset Sharing sepeda. Analisis ini bertujuan untuk memahami pola penggunaan sepeda dan meningkatkan layanan.")
+
+
+# Save combined DataFrame to CSV
+df_combined.to_csv("main_data.csv", index=False)
+
+# Conclusion Section
+st.subheader("Conclusions")
+st.write("""
+### Question 1 Conclusion
+- Significant differences exist in bike rental trends across seasons.
+- Rental behavior is influenced by seasonal factors.
+- Insights can guide marketing strategies for bike rental services.
+
+### Question 2 Conclusion
+- Holiday vs. Non-Holiday rental trends show significant differences.
+- Higher rentals occur on weekdays, especially Thursday to Saturday.
+- Service providers can optimize operations based on demand trends.
+""")
