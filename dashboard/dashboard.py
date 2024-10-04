@@ -115,6 +115,7 @@ df_hour_agg = df_hour.groupby('dteday').agg({
 df_combined = pd.merge(df_day, df_hour_agg, on='dteday', suffixes=('_day', '_hour'))
 
 # Seasonal and monthly trend
+st.subheader("Seasonal and monthly trend")
 total_by_season_mnth = df_combined.groupby(['season', 'mnth']).agg({
     'cnt_day': 'sum',
     'cnt_hour': 'sum'
@@ -128,14 +129,7 @@ plt.ylabel('Total Penyewaan')
 plt.xticks(rotation=45)
 st.pyplot(plt)
 
-plt.figure(figsize=(12, 8))
-sns.barplot(data=total_by_season_mnth, x='mnth', y='cnt_hour', hue='season')
-plt.title('Total Penyewaan Sepeda Berdasarkan Musim (Season) dan Bulan')
-plt.xlabel('Month')
-plt.ylabel('Total Penyewaan')
-plt.xticks(rotation=45)
-st.pyplot(plt)
-
+st.subheader("Holiday Analysis")
 # Analysis on Holidays
 df_combined['day_info'] = df_combined.apply(
     lambda row: f"{'Holiday' if row['holiday'] == 1 else 'Non-Holiday'}",
@@ -166,7 +160,8 @@ plt.ylabel('Count of Hours')
 plt.tight_layout()
 st.pyplot(plt)
 
-# New Graph: Total Rentals Based on Season and Year
+# New Graph: Total Sharings Based on Season and Year
+st.subheader("Total Sharings Based on Season and Year")
 total_by_season_year = df_combined.groupby(['yr', 'season']).agg({
     'cnt_day': 'sum',
     'cnt_hour': 'sum'
@@ -182,6 +177,7 @@ plt.legend(title='Year', loc='upper right', labels=['2011', '2012'])
 st.pyplot(plt)
 
 # Clustering Analysis
+st.subheader("Clustering Analysis")
 features = df_hour[['casual', 'registered']].values
 scaler = StandardScaler()
 features_scaled = scaler.fit_transform(features)
@@ -227,6 +223,6 @@ st.write("""
 
 ### Question 2 Conclusion
 - Holiday vs. Non-Holiday rental trends show significant differences.
-- Higher rentals occur on weekdays, especially Thursday to Saturday.
+- Higher Sharings occur on weekdays, especially Thursday to Saturday.
 - Service providers can optimize operations based on demand trends.
 """)
