@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 import streamlit as st
 
 # Title of the app
-st.title('Bike Rental Analysis')
+st.title('Bike Sharing Analysis')
 
 # Data Gathering
 df_hour = pd.read_csv("https://drive.google.com/uc?id=1L9OyIKdgGVPpThq55Z-54BFpOfurkNVu&export=download")
@@ -208,6 +208,8 @@ plt.ylabel('Jumlah Registered')
 plt.legend(title='Cluster')
 st.pyplot(plt)
 
+
+
 # Save combined DataFrame to CSV
 df_combined.to_csv("main_data.csv", index=False)
 
@@ -215,12 +217,12 @@ df_combined.to_csv("main_data.csv", index=False)
 st.subheader("Conclusions")
 st.write("""
 ### Question 1 Conclusion
-- Significant differences exist in bike rental trends across seasons.
-- Rental behavior is influenced by seasonal factors.
-- Insights can guide marketing strategies for bike rental services.
+- Significant differences exist in bike sharing trends across seasons.
+- sharing behavior is influenced by seasonal factors.
+- Insights can guide marketing strategies for bike sharing services.
 
 ### Question 2 Conclusion
-- Holiday vs. Non-Holiday rental trends show significant differences.
+- Holiday vs. Non-Holiday sharing trends show significant differences.
 - Higher Sharings occur on weekdays, especially Thursday to Saturday.
 - Service providers can optimize operations based on demand trends.
 """)
