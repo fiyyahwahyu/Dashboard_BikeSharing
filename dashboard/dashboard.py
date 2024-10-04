@@ -129,8 +129,24 @@ plt.ylabel('Total Penyewaan')
 plt.xticks(rotation=45)
 st.pyplot(plt)
 
-st.subheader("Holiday Analysis")
+# New Graph: Total Sharings Based on Season and Year
+st.subheader("Total Sharings Based on Season and Year")
+total_by_season_year = df_combined.groupby(['yr', 'season']).agg({
+    'cnt_day': 'sum',
+    'cnt_hour': 'sum'
+}).reset_index()
+total_by_season_year['yr'] = total_by_season_year['yr'].replace({0: 2011, 1: 2012})
+
+plt.figure(figsize=(10, 6))
+sns.barplot(data=total_by_season_year, x='season', y='cnt_day', hue='yr')
+plt.title('Total Penyewaan Sepeda Berdasarkan Musim Tahun 2011 dan 2012')
+plt.xlabel('Season')
+plt.ylabel('Total Penyewaan (Hari)')
+plt.legend(title='Year', loc='upper right', labels=['2011', '2012'])
+st.pyplot(plt)
+
 # Analysis on Holidays
+st.subheader("Holiday Analysis")
 df_combined['day_info'] = df_combined.apply(
     lambda row: f"{'Holiday' if row['holiday'] == 1 else 'Non-Holiday'}",
     axis=1
@@ -158,22 +174,6 @@ plt.xlabel('Holiday Type')
 plt.ylabel('Count of Hours')
 
 plt.tight_layout()
-st.pyplot(plt)
-
-# New Graph: Total Sharings Based on Season and Year
-st.subheader("Total Sharings Based on Season and Year")
-total_by_season_year = df_combined.groupby(['yr', 'season']).agg({
-    'cnt_day': 'sum',
-    'cnt_hour': 'sum'
-}).reset_index()
-total_by_season_year['yr'] = total_by_season_year['yr'].replace({0: 2011, 1: 2012})
-
-plt.figure(figsize=(10, 6))
-sns.barplot(data=total_by_season_year, x='season', y='cnt_day', hue='yr')
-plt.title('Total Penyewaan Sepeda Berdasarkan Musim Tahun 2011 dan 2012')
-plt.xlabel('Season')
-plt.ylabel('Total Penyewaan (Hari)')
-plt.legend(title='Year', loc='upper right', labels=['2011', '2012'])
 st.pyplot(plt)
 
 # Clustering Analysis
@@ -207,8 +207,6 @@ plt.xlabel('Jumlah Casual')
 plt.ylabel('Jumlah Registered')
 plt.legend(title='Cluster')
 st.pyplot(plt)
-
-
 
 # Save combined DataFrame to CSV
 df_combined.to_csv("main_data.csv", index=False)
